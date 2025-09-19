@@ -1,8 +1,12 @@
-import Navbar from './components/Navbar.tsx'
+import Banner from "./components/Banner/Banner.tsx";
+import TablePostAdmin from './components/Table/TablePostAdmin.tsx'
 
 function App() {
   return (
-    <Navbar/>
+    <>
+    <Banner />
+    <TablePostAdmin />
+    </>
   )
 }
 
