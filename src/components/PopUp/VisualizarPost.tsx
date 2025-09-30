@@ -1,9 +1,10 @@
 import * as React from "react";
 import {
   Card, CardHeader, CardContent, CardActions, CardMedia,
-  Typography, IconButton, Grid, Button, Dialog, DialogTitle,
+  Typography, IconButton, Button, Dialog, DialogTitle,
   DialogContent, DialogActions, TextField, Stack
 } from "@mui/material";
+import Grid from "@mui/material/Grid";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
