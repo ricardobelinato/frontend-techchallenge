@@ -14,6 +14,7 @@ import {
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import Logo from "../../assets/logobg.png";
+import axios from "axios";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -23,24 +24,39 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError("");
     setLoading(true);
 
-    setTimeout(() => {
+    try {
+      const res = await axios.post("http://localhost:3000/posts/auth", {
+        email,
+        senha,
+      });
+
       setLoading(false);
 
-      if (email === "aluno@teste.com" && senha === "123456") {
-        // login aluno
-        navigate("/aluno");
-      } else if (email === "prof@teste.com" && senha === "123456") {
-        // login professor
+      // res.data vai ter id, email, admin, token
+      const usuario = res.data;
+
+      if (usuario.admin) {
         navigate("/admin");
       } else {
-        setError("Email ou senha incorretos.");
+        navigate("/aluno");
       }
-    }, 1000);
+
+      localStorage.setItem("token", usuario.token);
+
+    } catch (err: any) {
+      setLoading(false);
+
+      if (err.response && err.response.status === 401) {
+        setError("Email ou senha incorretos.");
+      } else {
+        setError("Erro ao conectar com o servidor.");
+      }
+    }
   };
 
   return (
