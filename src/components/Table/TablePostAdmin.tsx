@@ -2,90 +2,64 @@ import * as React from "react";
 import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Paper, IconButton, Tooltip, Button, Stack, Dialog, DialogTitle,
-  DialogContent, DialogActions, TextField, Typography, Avatar
+  DialogContent, DialogActions, TextField, Typography, Avatar, Box,
+  Chip, CircularProgress, Alert
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { styled } from "@mui/material/styles";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import PersonIcon from "@mui/icons-material/Person";
+import axios from "axios";
 
-// Interfaces
 interface Usuario {
+  id: number;
   nome: string;
+  email: string;
 }
 
 interface Post {
   id: number;
   titulo: string;
   conteudo: string;
-  Usuario: Usuario;
+  imagem: string | null;
+  usuario_id: number;
   data_criacao: string;
-  imagem?: string;
+  data_atualizacao: string;
+  Usuario: Usuario;
 }
 
-// Estilização
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
-  "&:nth-of-type(odd)": { backgroundColor: theme.palette.action.hover },
-  "&:hover": { backgroundColor: theme.palette.action.selected, transition: "0.3s" },
-}));
+export default function PostsTable() {
+  const [posts, setPosts] = React.useState<Post[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState("");
 
-const StyledTableCell = styled(TableCell)(({ theme }) => ({
-  fontWeight: "bold",
-  color: theme.palette.text.primary,
-}));
-
-export default function CustomTable() {
-  const [posts, setPosts] = React.useState<Post[]>([
-    {
-      id: 1,
-      titulo: "Introdução à Programação",
-      conteudo: "Aprenda os conceitos básicos de lógica de programação usando Python e JavaScript.",
-      Usuario: { nome: "Professor Carlos" },
-      data_criacao: "2025-09-01T12:00:00Z",
-      imagem: "https://picsum.photos/50/50?random=101",
-    },
-    {
-      id: 2,
-      titulo: "Estruturas de Dados",
-      conteudo: "Exploramos arrays, listas, filas e pilhas, fundamentais para qualquer desenvolvedor.",
-      Usuario: { nome: "Professora Ana" },
-      data_criacao: "2025-09-03T14:30:00Z",
-      imagem: "https://picsum.photos/50/50?random=102",
-    },
-    {
-      id: 3,
-      titulo: "Algoritmos de Busca",
-      conteudo: "Aprenda sobre busca linear, busca binária e como escolher o algoritmo adequado.",
-      Usuario: { nome: "Professor Roberto" },
-      data_criacao: "2025-09-05T10:15:00Z",
-      imagem: "https://picsum.photos/50/50?random=103",
-    },
-    {
-      id: 4,
-      titulo: "Programação Orientada a Objetos",
-      conteudo: "Entenda os conceitos de classes, objetos, herança e encapsulamento em Java e C#.",
-      Usuario: { nome: "Professora Maria" },
-      data_criacao: "2025-09-07T09:45:00Z",
-    },
-    {
-      id: 5,
-      titulo: "Redes de Computadores",
-      conteudo: "Conheça protocolos, topologias e camadas de rede essenciais para a comunicação entre computadores.",
-      Usuario: { nome: "Professor Eduardo" },
-      data_criacao: "2025-09-10T16:20:00Z",
-      imagem: "https://picsum.photos/50/50?random=104",
-    },
-  ]);
-
-  // Modais
   const [openView, setOpenView] = React.useState(false);
   const [openEdit, setOpenEdit] = React.useState(false);
   const [openCreate, setOpenCreate] = React.useState(false);
   const [selectedPost, setSelectedPost] = React.useState<Post | null>(null);
   const [formData, setFormData] = React.useState({ titulo: "", conteudo: "", imagem: "" });
+  const [submitLoading, setSubmitLoading] = React.useState(false);
 
-  // Handlers
+  const fetchPosts = React.useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get("http://localhost:3000/posts");
+      setPosts(response.data);
+      setError("");
+    } catch (err) {
+      console.error("Erro ao carregar posts:", err);
+      setError("Não foi possível carregar os posts.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    fetchPosts();
+  }, [fetchPosts]);
+
   const handleView = (post: Post) => {
     setSelectedPost(post);
     setOpenView(true);
@@ -93,13 +67,26 @@ export default function CustomTable() {
 
   const handleEdit = (post: Post) => {
     setSelectedPost(post);
-    setFormData({ titulo: post.titulo, conteudo: post.conteudo, imagem: post.imagem || "" });
+    setFormData({ 
+      titulo: post.titulo, 
+      conteudo: post.conteudo, 
+      imagem: post.imagem || "" 
+    });
     setOpenEdit(true);
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = async (id: number) => {
     if (window.confirm("Deseja realmente excluir este post?")) {
-      setPosts(posts.filter(p => p.id !== id));
+      try {
+        const token = localStorage.getItem("token");
+        await axios.delete(`http://localhost:3000/posts/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        fetchPosts();
+      } catch (err) {
+        console.error("Erro ao excluir post:", err);
+        alert("Erro ao excluir o post.");
+      }
     }
   };
 
@@ -108,154 +95,437 @@ export default function CustomTable() {
     setOpenCreate(true);
   };
 
-  const handleSaveEdit = () => {
-    if (selectedPost) {
-      setPosts(posts.map(p => p.id === selectedPost.id ? { ...p, ...formData } : p));
+  const handleSaveEdit = async () => {
+    if (!selectedPost) return;
+    
+    setSubmitLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      await axios.put(
+        `http://localhost:3000/posts/${selectedPost.id}`,
+        {
+          titulo: formData.titulo,
+          conteudo: formData.conteudo,
+          imagem: formData.imagem || null,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       setOpenEdit(false);
+      fetchPosts();
+    } catch (err) {
+      console.error("Erro ao editar post:", err);
+      alert("Erro ao editar o post.");
+    } finally {
+      setSubmitLoading(false);
     }
   };
 
-  const handleSaveCreate = () => {
-    const newPost: Post = {
-      id: posts.length ? Math.max(...posts.map(p => p.id)) + 1 : 1,
-      titulo: formData.titulo,
-      conteudo: formData.conteudo,
-      Usuario: { nome: "Professor Teste" },
-      data_criacao: new Date().toISOString(),
-      imagem: formData.imagem || undefined,
-    };
-    setPosts([newPost, ...posts]);
-    setOpenCreate(false);
+  const handleSaveCreate = async () => {
+    setSubmitLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      await axios.post(
+        "http://localhost:3000/posts",
+        {
+          titulo: formData.titulo,
+          conteudo: formData.conteudo,
+          imagem: formData.imagem || null,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setOpenCreate(false);
+      fetchPosts();
+    } catch (err) {
+      console.error("Erro ao criar post:", err);
+      alert("Erro ao criar o post.");
+    } finally {
+      setSubmitLoading(false);
+    }
   };
 
+  const getInitials = (nome: string) => {
+    const names = nome.split(" ");
+    if (names.length >= 2) {
+      return `${names[0][0]}${names[1][0]}`.toUpperCase();
+    }
+    return nome.substring(0, 2).toUpperCase();
+  };
+
+  const getAvatarColor = (id: number) => {
+    const colors = ["#667eea", "#4CAF50", "#FF6B6B", "#FFA726", "#42A5F5", "#AB47BC"];
+    return colors[id % colors.length];
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric"
+    });
+  };
+
+  if (loading) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", p: 8 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Alert severity="error">{error}</Alert>
+      </Box>
+    );
+  }
+
   return (
-    <Paper sx={{ borderRadius: 3, boxShadow: 3, p: 2 }}>
-      {/* Botão nova postagem */}
-      <Stack direction="row" justifyContent="flex-end" sx={{ mb: 2 }}>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={handleNewPost}>
+    <Box>
+      <Stack 
+        direction={{ xs: "column", sm: "row" }} 
+        justifyContent="space-between" 
+        alignItems={{ xs: "stretch", sm: "center" }}
+        spacing={2}
+        sx={{ mb: 3 }}
+      >
+        <Box>
+          <Typography variant="h4" sx={{ fontWeight: 700, color: "#2c3e50" }}>
+            Gerenciar Posts
+          </Typography>
+          <Typography variant="body2" sx={{ color: "#5a6c7d", mt: 0.5 }}>
+            Crie, edite e remova publicações
+          </Typography>
+        </Box>
+        <Button 
+          variant="contained" 
+          startIcon={<AddIcon />} 
+          onClick={handleNewPost}
+          sx={{
+            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            boxShadow: "0 4px 12px rgba(102, 126, 234, 0.3)",
+            "&:hover": {
+              background: "linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)",
+              transform: "translateY(-2px)",
+              boxShadow: "0 6px 16px rgba(102, 126, 234, 0.4)",
+            },
+            transition: "all 0.3s ease"
+          }}
+        >
           Nova Postagem
         </Button>
       </Stack>
 
-      {/* Tabela */}
-      <TableContainer sx={{ borderRadius: 2, overflowX: "auto" }}>
-        <Table sx={{ minWidth: 700 }}>
-          <TableHead sx={{ backgroundColor: "#1976d2" }}>
-            <TableRow>
-              <StyledTableCell sx={{ color: "#fff" }}>ID</StyledTableCell>
-              <StyledTableCell sx={{ color: "#fff" }}>Imagem</StyledTableCell>
-              <StyledTableCell sx={{ color: "#fff" }}>Título</StyledTableCell>
-              <StyledTableCell sx={{ color: "#fff" }}>Conteúdo</StyledTableCell>
-              <StyledTableCell sx={{ color: "#fff" }}>Autor</StyledTableCell>
-              <StyledTableCell sx={{ color: "#fff" }}>Data</StyledTableCell>
-              <StyledTableCell sx={{ color: "#fff" }} align="center">Ações</StyledTableCell>
-            </TableRow>
-          </TableHead>
-
-          <TableBody>
-            {posts.map((post) => (
-              <StyledTableRow key={post.id}>
-                <TableCell>{post.id}</TableCell>
-                <TableCell>
-                  {post.imagem ? <Avatar src={post.imagem} variant="rounded" /> : "-"}
-                </TableCell>
-                <TableCell>{post.titulo}</TableCell>
-                <TableCell>{post.conteudo}</TableCell>
-                <TableCell>{post.Usuario.nome}</TableCell>
-                <TableCell>{new Date(post.data_criacao).toLocaleDateString("pt-BR")}</TableCell>
-                <TableCell align="center">
-                  <Tooltip title="Visualizar">
-                    <IconButton color="primary" onClick={() => handleView(post)}>
-                      <VisibilityIcon />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Editar">
-                    <IconButton color="primary" onClick={() => handleEdit(post)}>
-                      <EditIcon />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Excluir">
-                    <IconButton color="error" onClick={() => handleDelete(post.id)}>
-                      <DeleteIcon />
-                    </IconButton>
-                  </Tooltip>
-                </TableCell>
-              </StyledTableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-
-      {/* Modal Visualizar */}
-<Dialog open={openView} onClose={() => setOpenView(false)} maxWidth="sm" fullWidth>
-  <Paper sx={{ borderRadius: 3, overflow: "hidden" }}>
-    {selectedPost?.imagem && (
-      <img
-        src={selectedPost.imagem}
-        alt={selectedPost.titulo}
-        style={{ width: "100%", maxHeight: 300, objectFit: "cover" }}
-      />
-    )}
-    <DialogTitle sx={{ fontWeight: "bold" }}>{selectedPost?.titulo}</DialogTitle>
-    <DialogContent dividers sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-      <Typography variant="subtitle2" color="text.secondary">
-        {selectedPost?.Usuario.nome} • {selectedPost && new Date(selectedPost.data_criacao).toLocaleDateString("pt-BR")}
-      </Typography>
-      <Typography sx={{ whiteSpace: "pre-wrap" }}>{selectedPost?.conteudo}</Typography>
-    </DialogContent>
-    <DialogActions>
-      <Button variant="contained" color="primary" onClick={() => setOpenView(false)}>Fechar</Button>
-    </DialogActions>
-  </Paper>
-</Dialog>
-
-{/* Modal Editar / Criar */}
-<Dialog open={openEdit || openCreate} onClose={() => { setOpenEdit(false); setOpenCreate(false); }} maxWidth="sm" fullWidth>
-  <Paper sx={{ borderRadius: 3 }}>
-    <DialogTitle sx={{ fontWeight: "bold" }}>
-      {openEdit ? "Editar Post" : "Nova Postagem"}
-    </DialogTitle>
-    <DialogContent dividers sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-      <TextField
-        label="Título"
-        value={formData.titulo}
-        onChange={e => setFormData({ ...formData, titulo: e.target.value })}
-        fullWidth
-      />
-      <TextField
-        label="Conteúdo"
-        value={formData.conteudo}
-        onChange={e => setFormData({ ...formData, conteudo: e.target.value })}
-        multiline
-        rows={4}
-        fullWidth
-      />
-      <TextField
-        label="URL da Imagem"
-        value={formData.imagem}
-        onChange={e => setFormData({ ...formData, imagem: e.target.value })}
-        fullWidth
-      />
-      {formData.imagem && (
-        <img
-          src={formData.imagem}
-          alt="Preview"
-          style={{ width: "100%", maxHeight: 200, objectFit: "cover", borderRadius: 5, marginTop: 10 }}
-        />
-      )}
-    </DialogContent>
-    <DialogActions sx={{ justifyContent: "flex-end", padding: 2 }}>
-      <Button onClick={() => { setOpenEdit(false); setOpenCreate(false); }}>Cancelar</Button>
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={openEdit ? handleSaveEdit : handleSaveCreate}
+      <Paper 
+        sx={{ 
+          borderRadius: 3, 
+          overflow: "hidden",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+          border: "1px solid #e0e0e0"
+        }}
       >
-        {openEdit ? "Salvar" : "Criar"}
-      </Button>
-    </DialogActions>
-  </Paper>
-</Dialog>
-    </Paper>
+        <TableContainer>
+          <Table sx={{ minWidth: 800 }}>
+            <TableHead>
+              <TableRow sx={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}>
+                <TableCell sx={{ color: "#fff", fontWeight: 700, fontSize: "0.875rem" }}>ID</TableCell>
+                <TableCell sx={{ color: "#fff", fontWeight: 700, fontSize: "0.875rem" }}>Imagem</TableCell>
+                <TableCell sx={{ color: "#fff", fontWeight: 700, fontSize: "0.875rem" }}>Título</TableCell>
+                <TableCell sx={{ color: "#fff", fontWeight: 700, fontSize: "0.875rem" }}>Autor</TableCell>
+                <TableCell sx={{ color: "#fff", fontWeight: 700, fontSize: "0.875rem" }}>Data</TableCell>
+                <TableCell sx={{ color: "#fff", fontWeight: 700, fontSize: "0.875rem" }} align="center">Ações</TableCell>
+              </TableRow>
+            </TableHead>
+
+            <TableBody>
+              {posts.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
+                    <Typography color="text.secondary">Nenhum post encontrado</Typography>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                posts.map((post, index) => (
+                  <TableRow 
+                    key={post.id}
+                    sx={{
+                      "&:nth-of-type(odd)": { backgroundColor: "#f8f9fa" },
+                      "&:hover": { 
+                        backgroundColor: "#e8eaf6",
+                        transition: "0.2s" 
+                      },
+                    }}
+                  >
+                    <TableCell sx={{ fontWeight: 600, color: "#667eea" }}>#{post.id}</TableCell>
+                    <TableCell>
+                      {post.imagem ? (
+                        <Avatar 
+                          src={`http://localhost:3000/uploads/${post.imagem}`} 
+                          variant="rounded"
+                          sx={{ width: 50, height: 50 }}
+                          onError={(e: any) => {
+                            e.target.src = `https://picsum.photos/50/50?random=${post.id}`;
+                          }}
+                        />
+                      ) : (
+                        <Avatar 
+                          variant="rounded"
+                          sx={{ 
+                            width: 50, 
+                            height: 50, 
+                            background: "#f0f0f0",
+                            color: "#999"
+                          }}
+                        >
+                          -
+                        </Avatar>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          fontWeight: 600,
+                          color: "#2c3e50",
+                          maxWidth: 300,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap"
+                        }}
+                      >
+                        {post.titulo}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Avatar 
+                          sx={{ 
+                            width: 32, 
+                            height: 32,
+                            background: getAvatarColor(post.Usuario.id),
+                            fontSize: "0.75rem",
+                            fontWeight: 600
+                          }}
+                        >
+                          {getInitials(post.Usuario.nome)}
+                        </Avatar>
+                        <Box>
+                          <Typography variant="body2" sx={{ fontWeight: 600, fontSize: "0.875rem" }}>
+                            {post.Usuario.nome}
+                          </Typography>
+                        </Box>
+                      </Stack>
+                    </TableCell>
+                    <TableCell>
+                      <Stack direction="row" spacing={0.5} alignItems="center">
+                        <AccessTimeIcon sx={{ fontSize: 14, color: "#5a6c7d" }} />
+                        <Typography variant="caption" sx={{ color: "#5a6c7d" }}>
+                          {formatDate(post.data_criacao)}
+                        </Typography>
+                      </Stack>
+                    </TableCell>
+                    <TableCell align="center">
+                      <Stack direction="row" spacing={0.5} justifyContent="center">
+                        <Tooltip title="Visualizar">
+                          <IconButton 
+                            size="small"
+                            onClick={() => handleView(post)}
+                            sx={{
+                              color: "#667eea",
+                              "&:hover": { background: "rgba(102, 126, 234, 0.1)" }
+                            }}
+                          >
+                            <VisibilityIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Editar">
+                          <IconButton 
+                            size="small"
+                            onClick={() => handleEdit(post)}
+                            sx={{
+                              color: "#4CAF50",
+                              "&:hover": { background: "rgba(76, 175, 80, 0.1)" }
+                            }}
+                          >
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Excluir">
+                          <IconButton 
+                            size="small"
+                            onClick={() => handleDelete(post.id)}
+                            sx={{
+                              color: "#d32f2f",
+                              "&:hover": { background: "rgba(211, 47, 47, 0.1)" }
+                            }}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
+
+      <Dialog 
+        open={openView} 
+        onClose={() => setOpenView(false)} 
+        maxWidth="sm" 
+        fullWidth
+        PaperProps={{
+          sx: { borderRadius: 3 }
+        }}
+      >
+        {selectedPost?.imagem && (
+          <Box
+            sx={{
+              width: "100%",
+              height: 300,
+              background: "#f5f5f5",
+              overflow: "hidden"
+            }}
+          >
+            <img
+              src={`http://localhost:3000/uploads/${selectedPost.imagem}`}
+              alt={selectedPost.titulo}
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              onError={(e: any) => {
+                e.target.src = `https://picsum.photos/600/300?random=${selectedPost.id}`;
+              }}
+            />
+          </Box>
+        )}
+        <DialogTitle sx={{ fontWeight: 700, fontSize: "1.5rem", color: "#2c3e50" }}>
+          {selectedPost?.titulo}
+        </DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={2}>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Avatar 
+                sx={{ 
+                  width: 40, 
+                  height: 40,
+                  background: selectedPost ? getAvatarColor(selectedPost.Usuario.id) : "#ccc",
+                  fontWeight: 600
+                }}
+              >
+                {selectedPost && getInitials(selectedPost.Usuario.nome)}
+              </Avatar>
+              <Box>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                  {selectedPost?.Usuario.nome}
+                </Typography>
+                <Stack direction="row" spacing={0.5} alignItems="center">
+                  <AccessTimeIcon sx={{ fontSize: 12, color: "#5a6c7d" }} />
+                  <Typography variant="caption" sx={{ color: "#5a6c7d" }}>
+                    {selectedPost && formatDate(selectedPost.data_criacao)}
+                  </Typography>
+                </Stack>
+              </Box>
+            </Stack>
+            <Typography sx={{ whiteSpace: "pre-wrap", lineHeight: 1.7, color: "#5a6c7d" }}>
+              {selectedPost?.conteudo}
+            </Typography>
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button 
+            variant="contained" 
+            onClick={() => setOpenView(false)}
+            sx={{
+              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            }}
+          >
+            Fechar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog 
+        open={openEdit || openCreate} 
+        onClose={() => { setOpenEdit(false); setOpenCreate(false); }} 
+        maxWidth="sm" 
+        fullWidth
+        PaperProps={{
+          sx: { borderRadius: 3 }
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 700, fontSize: "1.5rem", color: "#2c3e50" }}>
+          {openEdit ? "Editar Post" : "Nova Postagem"}
+        </DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={2.5}>
+            <TextField
+              label="Título"
+              value={formData.titulo}
+              onChange={e => setFormData({ ...formData, titulo: e.target.value })}
+              fullWidth
+              required
+            />
+            <TextField
+              label="Conteúdo"
+              value={formData.conteudo}
+              onChange={e => setFormData({ ...formData, conteudo: e.target.value })}
+              multiline
+              rows={4}
+              fullWidth
+              required
+            />
+            <TextField
+              label="Nome da Imagem"
+              value={formData.imagem}
+              onChange={e => setFormData({ ...formData, imagem: e.target.value })}
+              fullWidth
+              placeholder="exemplo.jpg"
+              helperText="Deixe em branco se não quiser adicionar imagem"
+            />
+            {formData.imagem && (
+              <Box
+                sx={{
+                  width: "100%",
+                  height: 200,
+                  borderRadius: 2,
+                  overflow: "hidden",
+                  background: "#f5f5f5"
+                }}
+              >
+                <img
+                  src={`http://localhost:3000/uploads/${formData.imagem}`}
+                  alt="Preview"
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  onError={(e: any) => {
+                    e.target.src = "https://via.placeholder.com/400x200?text=Imagem+não+encontrada";
+                  }}
+                />
+              </Box>
+            )}
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button 
+            onClick={() => { setOpenEdit(false); setOpenCreate(false); }}
+            sx={{ color: "#5a6c7d" }}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            onClick={openEdit ? handleSaveEdit : handleSaveCreate}
+            disabled={submitLoading || !formData.titulo || !formData.conteudo}
+            sx={{
+              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              minWidth: 100
+            }}
+          >
+            {submitLoading ? <CircularProgress size={24} color="inherit" /> : (openEdit ? "Salvar" : "Criar")}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
 }

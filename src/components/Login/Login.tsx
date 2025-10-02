@@ -47,6 +47,12 @@ export default function Login() {
       }
 
       localStorage.setItem("token", usuario.token);
+      localStorage.setItem("user", JSON.stringify({
+        id: usuario.id,
+        nome: usuario.nome,
+        email: usuario.email,
+        admin: usuario.admin
+      }));
 
     } catch (err: any) {
       setLoading(false);
