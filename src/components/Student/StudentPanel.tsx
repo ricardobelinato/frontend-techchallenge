@@ -5,6 +5,7 @@ import ButtonAppBar from "../Navbar";
 import Banner from "../Banner/Banner";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import PersonIcon from "@mui/icons-material/Person";
+import { Link } from "react-router-dom";
 
 interface Post {
   id: number;
@@ -151,6 +152,8 @@ export default function StudentPanel() {
           >
             {posts.map((post) => (
               <Card
+                component={Link}
+                to={`/aluno/posts/${post.id}`}
                 key={post.id}
                 sx={{
                   borderRadius: 3,
