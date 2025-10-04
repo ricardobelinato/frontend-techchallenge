@@ -1,5 +1,6 @@
 import { Box, Typography, Stack, Container } from "@mui/material";
 import { useEffect, useState } from "react";
+import axios from "axios";
 import WavingHandIcon from "@mui/icons-material/WavingHand";
 import SchoolIcon from "@mui/icons-material/School";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
@@ -14,6 +15,8 @@ interface User {
 export default function Banner() {
   const [user, setUser] = useState<User | null>(null);
   const [greeting, setGreeting] = useState("Olá");
+  const [disciplinasCount, setDisciplinasCount] = useState(0);
+  const [totalStudents, setTotalStudents] = useState(0);
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
@@ -26,6 +29,49 @@ export default function Banner() {
     else if (hour < 18) setGreeting("Boa tarde");
     else setGreeting("Boa noite");
   }, []);
+
+  useEffect(() => {
+    const userData = localStorage.getItem("user");
+    if (userData) setUser(JSON.parse(userData));
+
+    const hour = new Date().getHours();
+    if (hour < 12) setGreeting("Bom dia");
+    else if (hour < 18) setGreeting("Boa tarde");
+    else setGreeting("Boa noite");
+  }, []);
+
+  useEffect(() => {
+    const fetchDisciplinas = async () => {
+      if (!user || user.admin) return;
+
+      try {
+        const response = await axios.get("http://localhost:3000/posts");
+        const materiasUnicas = new Set(response.data.map((p: any) => p.materia));
+        setDisciplinasCount(materiasUnicas.size);
+      } catch (err) {
+        console.error("Erro ao buscar disciplinas:", err);
+      }
+    };
+
+    fetchDisciplinas();
+  }, [user]);
+
+  useEffect(() => {
+    const fetchTotalAlunos = async () => {
+      if (!user) return;
+
+      try {
+        const response = await axios.get("http://localhost:3000/auth/stats");
+        const { totalUsuarios, totalAlunos, totalAdmins } = response.data
+
+        setTotalStudents(totalAlunos);
+      } catch (err) {
+        console.error("Erro ao buscar alunos:", err);
+      }
+    };
+
+    fetchTotalAlunos();
+  }, [user]);
 
   const firstName = user?.nome.split(" ")[0] || "Usuário";
   const userType = user?.admin ? "Professor" : "Aluno";
@@ -130,7 +176,7 @@ export default function Banner() {
                 </Box>
                 <Box>
                   <Typography variant="h4" sx={{ fontWeight: 700, color: "#fff", lineHeight: 1 }}>
-                    {user?.admin ? "8" : "5"}
+                    {user?.admin ? "8" : disciplinasCount}
                   </Typography>
                   <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.95)", mt: 0.5 }}>
                     {user?.admin ? "Turmas ativas" : "Disciplinas"}
@@ -166,7 +212,7 @@ export default function Banner() {
                 </Box>
                 <Box>
                   <Typography variant="h4" sx={{ fontWeight: 700, color: "#fff", lineHeight: 1 }}>
-                    {user?.admin ? "156" : "92%"}
+                    {user?.admin ? totalStudents : "92%"}
                   </Typography>
                   <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.95)", mt: 0.5 }}>
                     {user?.admin ? "Alunos totais" : "Taxa de conclusão"}
