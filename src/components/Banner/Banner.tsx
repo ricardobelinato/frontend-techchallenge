@@ -62,7 +62,8 @@ export default function Banner() {
 
       try {
         const response = await axios.get("http://localhost:3000/auth/stats");
-        const { totalUsuarios, totalAlunos, totalAdmins } = response.data
+        // const { totalUsuarios, totalAlunos, totalAdmins } = response.data
+        const { totalAlunos } = response.data
 
         setTotalStudents(totalAlunos);
       } catch (err) {
