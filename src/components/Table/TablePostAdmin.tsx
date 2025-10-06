@@ -3,14 +3,13 @@ import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Paper, IconButton, Tooltip, Button, Stack, Dialog, DialogTitle,
   DialogContent, DialogActions, TextField, Typography, Avatar, Box,
-  Chip, CircularProgress, Alert
+  CircularProgress, Alert
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import PersonIcon from "@mui/icons-material/Person";
 import axios from "axios";
 
 interface Usuario {
@@ -245,7 +244,7 @@ export default function PostsTable() {
                   </TableCell>
                 </TableRow>
               ) : (
-                posts.map((post, index) => (
+                posts.map((post) => (
                   <TableRow 
                     key={post.id}
                     sx={{
