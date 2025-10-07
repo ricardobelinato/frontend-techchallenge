@@ -123,12 +123,16 @@ export default function PostsTable() {
     setSubmitLoading(true);
     try {
       const token = localStorage.getItem("token");
+      const userId = JSON.parse(localStorage.getItem('user') || '{}')?.id;
+      if (!userId) return;
+
       await axios.post(
         "http://localhost:3000/posts",
         {
           titulo: formData.titulo,
           conteudo: formData.conteudo,
           imagem: formData.imagem || null,
+          usuario_id: userId,
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
