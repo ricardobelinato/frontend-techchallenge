@@ -1,4 +1,16 @@
-import { Box, Typography, Avatar, Card, CardContent, Stack, Chip, Container, CircularProgress, Alert } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Avatar,
+  Card,
+  CardContent,
+  Stack,
+  Chip,
+  Container,
+  CircularProgress,
+  Alert,
+  TextField,
+} from "@mui/material";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import ButtonAppBar from "../Navbar";
@@ -27,6 +39,7 @@ export default function StudentPanel() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -53,11 +66,11 @@ export default function StudentPanel() {
     if (diffDays === 0) return "Hoje";
     if (diffDays === 1) return "Ontem";
     if (diffDays < 7) return `${diffDays} dias atrás`;
-    
+
     return date.toLocaleDateString("pt-BR", {
       day: "2-digit",
       month: "short",
-      year: "numeric"
+      year: "numeric",
     });
   };
 
@@ -78,17 +91,26 @@ export default function StudentPanel() {
       "#42A5F5",
       "#AB47BC",
       "#26C6DA",
-      "#66BB6A"
+      "#66BB6A",
     ];
     return colors[id % colors.length];
   };
+
+  const filteredPosts = posts.filter(
+    (post) =>
+      post.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      post.conteudo.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   if (loading) {
     return (
       <>
         <ButtonAppBar />
         <Banner />
-        <Container maxWidth="md" sx={{ mt: 4, display: "flex", justifyContent: "center" }}>
+        <Container
+          maxWidth="md"
+          sx={{ mt: 4, display: "flex", justifyContent: "center" }}
+        >
           <CircularProgress />
         </Container>
       </>
@@ -112,29 +134,62 @@ export default function StudentPanel() {
       <ButtonAppBar />
       <Banner />
 
-      <Container maxWidth="xl" sx={{ mt: 4, mb: 6, px: { xs: 2, sm: 3, md: 4 } }}>
+      <Container
+        maxWidth="xl"
+        sx={{ mt: 4, mb: 6, px: { xs: 2, sm: 3, md: 4 } }}
+      >
         <Box sx={{ mb: 4 }}>
-          <Typography 
-            variant="h4" 
-            sx={{ 
-              fontWeight: 700, 
+          <Typography
+            variant="h4"
+            sx={{
+              fontWeight: 700,
               color: "#2c3e50",
               mb: 1,
               mt: { md: 5 },
-              ml: { md: 18 }
+              ml: { md: 18 },
             }}
           >
             Feed de Atividades
           </Typography>
-          <Typography variant="body1" sx={{ color: "#5a6c7d", ml: { md: 18 } }}>
+          <Typography
+            variant="body1"
+            sx={{ color: "#5a6c7d", ml: { md: 18 }, mb: 3 }}
+          >
             Acompanhe as últimas publicações e conteúdos dos seus professores
           </Typography>
+
+          {/* Campo de busca */}
+          <Box sx={{ ml: { md: 18 }, mr: { md: 18 }, mb: 4 }}>
+            <TextField
+              fullWidth
+              variant="outlined"
+              placeholder="Buscar post por palavra-chave..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              sx={{
+                backgroundColor: "#fff",
+                borderRadius: 2,
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    borderColor: "#ccc",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "#667eea",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "#667eea",
+                    boxShadow: "0 0 0 2px rgba(102,126,234,0.2)",
+                  },
+                },
+              }}
+            />
+          </Box>
         </Box>
 
-        {posts.length === 0 ? (
+        {filteredPosts.length === 0 ? (
           <Card sx={{ p: 4, textAlign: "center", borderRadius: 3 }}>
             <Typography variant="h6" color="text.secondary">
-              Nenhum post disponível no momento
+              Nenhum post encontrado
             </Typography>
           </Card>
         ) : (
@@ -148,10 +203,10 @@ export default function StudentPanel() {
               },
               gap: 3,
               ml: { md: 18 },
-              mr: { md: 18 }
+              mr: { md: 18 },
             }}
           >
-            {posts.map((post) => (
+            {filteredPosts.map((post) => (
               <Card
                 component={Link}
                 to={`/aluno/posts/${post.id}`}
@@ -170,9 +225,20 @@ export default function StudentPanel() {
                   },
                 }}
               >
-                <CardContent sx={{ p: 2.5, display: "flex", flexDirection: "column", height: "100%" }}>
-                  {/* Header do post com autor e data */}
-                  <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
+                <CardContent
+                  sx={{
+                    p: 2.5,
+                    display: "flex",
+                    flexDirection: "column",
+                    height: "100%",
+                  }}
+                >
+                  <Stack
+                    direction="row"
+                    spacing={1.5}
+                    alignItems="center"
+                    sx={{ mb: 2 }}
+                  >
                     <Avatar
                       sx={{
                         width: 40,
@@ -185,15 +251,20 @@ export default function StudentPanel() {
                       {getInitials(post.Usuario.nome)}
                     </Avatar>
                     <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Stack direction="row" spacing={0.5} alignItems="center" flexWrap="wrap">
-                        <Typography 
-                          variant="subtitle2" 
-                          sx={{ 
-                            fontWeight: 600, 
+                      <Stack
+                        direction="row"
+                        spacing={0.5}
+                        alignItems="center"
+                        flexWrap="wrap"
+                      >
+                        <Typography
+                          variant="subtitle2"
+                          sx={{
+                            fontWeight: 600,
                             color: "#2c3e50",
                             overflow: "hidden",
                             textOverflow: "ellipsis",
-                            whiteSpace: "nowrap"
+                            whiteSpace: "nowrap",
                           }}
                         >
                           {post.Usuario.nome.split(" ")[0]}
@@ -205,14 +276,23 @@ export default function StudentPanel() {
                             height: 18,
                             fontSize: "0.65rem",
                             fontWeight: 600,
-                            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                            background:
+                              "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                             color: "#fff",
                           }}
                         />
                       </Stack>
-                      <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.3 }}>
+                      <Stack
+                        direction="row"
+                        spacing={0.5}
+                        alignItems="center"
+                        sx={{ mt: 0.3 }}
+                      >
                         <AccessTimeIcon sx={{ fontSize: 12, color: "#5a6c7d" }} />
-                        <Typography variant="caption" sx={{ color: "#5a6c7d", fontSize: "0.7rem" }}>
+                        <Typography
+                          variant="caption"
+                          sx={{ color: "#5a6c7d", fontSize: "0.7rem" }}
+                        >
                           {formatDate(post.data_criacao)}
                         </Typography>
                       </Stack>
@@ -301,7 +381,7 @@ export default function StudentPanel() {
                           overflow: "hidden",
                           textOverflow: "ellipsis",
                           whiteSpace: "nowrap",
-                        }
+                        },
                       }}
                     />
                   </Box>
