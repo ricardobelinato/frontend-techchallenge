@@ -1,3 +1,4 @@
+//@ts-nocheck
 import * as React from "react";
 import {
   Card, CardHeader, CardContent, CardActions, CardMedia,

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { getApiUrl } from "../../config/api";
 import {
   Button,
   TextField,
@@ -31,7 +32,7 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const res = await axios.post("http://localhost:3000/auth/login", {
+      const res = await axios.post(getApiUrl("/auth/login"), {
         email,
         senha,
       });

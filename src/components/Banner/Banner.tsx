@@ -4,6 +4,7 @@ import axios from "axios";
 import WavingHandIcon from "@mui/icons-material/WavingHand";
 import SchoolIcon from "@mui/icons-material/School";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
+import { getApiUrl } from "../../config/api";
 
 interface User {
   id: number;
@@ -45,7 +46,7 @@ export default function Banner() {
       if (!user || user.admin) return;
 
       try {
-        const response = await axios.get("http://localhost:3000/posts");
+        const response = await axios.get(getApiUrl("posts"));
         const materiasUnicas = new Set(response.data.map((p: any) => p.materia));
         setDisciplinasCount(materiasUnicas.size);
       } catch (err) {
@@ -61,7 +62,7 @@ export default function Banner() {
       if (!user) return;
 
       try {
-        const response = await axios.get("http://localhost:3000/auth/stats");
+        const response = await axios.get(getApiUrl("auth/stats"));
         const { totalUsuarios, totalAlunos, totalAdmins } = response.data
 
         setTotalStudents(totalAlunos);
