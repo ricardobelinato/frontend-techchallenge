@@ -79,7 +79,7 @@ export default function PostsTable() {
     if (window.confirm("Deseja realmente excluir este post?")) {
       try {
         const token = localStorage.getItem("token");
-        await axios.delete(`getApiUrl("/posts/${id}`, {
+        await axios.delete(getApiUrl(`/posts/${id}`), {
           headers: { Authorization: `Bearer ${token}` }
         });
         fetchPosts();
@@ -102,7 +102,7 @@ export default function PostsTable() {
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        `getApiUrl("/posts/${selectedPost.id}`,
+        getApiUrl(`/posts/${selectedPost.id}`),
         {
           titulo: formData.titulo,
           conteudo: formData.conteudo,
@@ -264,7 +264,7 @@ export default function PostsTable() {
                     <TableCell>
                       {post.imagem ? (
                         <Avatar 
-                          src={`getApiUrl("/uploads/${post.imagem}`} 
+                          src={getApiUrl(`/uploads/${post.imagem}`)} 
                           variant="rounded"
                           sx={{ width: 50, height: 50 }}
                           onError={(e: any) => {
@@ -395,7 +395,7 @@ export default function PostsTable() {
             }}
           >
             <img
-              src={`getApiUrl("/uploads/${selectedPost.imagem}`}
+              src={getApiUrl(`/uploads/${selectedPost.imagem}`)}
               alt={selectedPost.titulo}
               style={{ width: "100%", height: "100%", objectFit: "cover" }}
               onError={(e: any) => {
@@ -499,7 +499,7 @@ export default function PostsTable() {
                 }}
               >
                 <img
-                  src={`getApiUrl("/uploads/${formData.imagem}`}
+                  src={getApiUrl(`/uploads/${formData.imagem}`)}
                   alt="Preview"
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                   onError={(e: any) => {

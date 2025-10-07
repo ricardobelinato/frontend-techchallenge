@@ -39,7 +39,7 @@
 //   useEffect(() => {
 //     const fetchPost = async () => {
 //       try {
-//         const response = await axios.get(`getApiUrl("/posts/${id}`);
+//         const response = await axios.get(getApiUrl(`/posts/${id}`));
 //         setPost(response.data);
 //       } catch (err) {
 //         setError("Erro ao carregar o post.");
@@ -186,7 +186,7 @@
 //             }}
 //           >
 //             <img
-//               src={`getApiUrl("/uploads/${post.imagem}`}
+//               src={getApiUrl(`/uploads/${post.imagem}`)}
 //               alt={post.titulo}
 //               style={{
 //                 width: "100%",
@@ -257,6 +257,7 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import PersonIcon from "@mui/icons-material/Person";
 import ButtonAppBar from "../Navbar";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { getApiUrl } from "../../config/api";
 
 interface Post {
   id: number;
@@ -282,7 +283,7 @@ export default function PostDetail() {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const response = await axios.get(`getApiUrl("/posts/${id}`);
+        const response = await axios.get(getApiUrl(`/posts/${id}`));
         setPost(response.data);
       } catch (err) {
         setError("Erro ao carregar o post.");
@@ -456,7 +457,7 @@ export default function PostDetail() {
             }}
           >
             <img
-              src={`getApiUrl("/uploads/${post.imagem}`}
+              src={getApiUrl(`/uploads/${post.imagem}`)}
               alt={post.titulo}
               style={{
                 width: "100%",
