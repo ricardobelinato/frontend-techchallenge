@@ -6,6 +6,7 @@ import Banner from "../Banner/Banner";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import PersonIcon from "@mui/icons-material/Person";
 import { Link } from "react-router-dom";
+import { getApiUrl, getUploadUrl } from "../../config/api";
 
 interface Post {
   id: number;
@@ -30,7 +31,7 @@ export default function StudentPanel() {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/posts");
+        const response = await axios.get(getApiUrl("/posts"));
         setPosts(response.data);
         setLoading(false);
       } catch (err) {
@@ -248,7 +249,7 @@ export default function StudentPanel() {
                       }}
                     >
                       <img
-                        src={`http://localhost:3000/uploads/${post.imagem}`}
+                        src={getUploadUrl(post.imagem)}
                         alt={post.titulo}
                         style={{
                           width: "100%",

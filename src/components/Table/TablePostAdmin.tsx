@@ -11,6 +11,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import axios from "axios";
+import { getApiUrl } from "../../config/api";
 
 interface Usuario {
   id: number;
@@ -44,7 +45,7 @@ export default function PostsTable() {
   const fetchPosts = React.useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axios.get("http://localhost:3000/posts");
+      const response = await axios.get(getApiUrl("/posts"));
       setPosts(response.data);
       setError("");
     } catch (err) {
@@ -78,7 +79,7 @@ export default function PostsTable() {
     if (window.confirm("Deseja realmente excluir este post?")) {
       try {
         const token = localStorage.getItem("token");
-        await axios.delete(`http://localhost:3000/posts/${id}`, {
+        await axios.delete(`getApiUrl("/posts/${id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         fetchPosts();
@@ -101,7 +102,7 @@ export default function PostsTable() {
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        `http://localhost:3000/posts/${selectedPost.id}`,
+        `getApiUrl("/posts/${selectedPost.id}`,
         {
           titulo: formData.titulo,
           conteudo: formData.conteudo,
@@ -127,7 +128,7 @@ export default function PostsTable() {
       if (!userId) return;
 
       await axios.post(
-        "http://localhost:3000/posts",
+        getApiUrl("/posts"),
         {
           titulo: formData.titulo,
           conteudo: formData.conteudo,
@@ -263,7 +264,7 @@ export default function PostsTable() {
                     <TableCell>
                       {post.imagem ? (
                         <Avatar 
-                          src={`http://localhost:3000/uploads/${post.imagem}`} 
+                          src={`getApiUrl("/uploads/${post.imagem}`} 
                           variant="rounded"
                           sx={{ width: 50, height: 50 }}
                           onError={(e: any) => {
@@ -394,7 +395,7 @@ export default function PostsTable() {
             }}
           >
             <img
-              src={`http://localhost:3000/uploads/${selectedPost.imagem}`}
+              src={`getApiUrl("/uploads/${selectedPost.imagem}`}
               alt={selectedPost.titulo}
               style={{ width: "100%", height: "100%", objectFit: "cover" }}
               onError={(e: any) => {
@@ -498,7 +499,7 @@ export default function PostsTable() {
                 }}
               >
                 <img
-                  src={`http://localhost:3000/uploads/${formData.imagem}`}
+                  src={`getApiUrl("/uploads/${formData.imagem}`}
                   alt="Preview"
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                   onError={(e: any) => {

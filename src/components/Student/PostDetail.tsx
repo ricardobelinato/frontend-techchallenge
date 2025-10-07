@@ -39,7 +39,7 @@
 //   useEffect(() => {
 //     const fetchPost = async () => {
 //       try {
-//         const response = await axios.get(`http://localhost:3000/posts/${id}`);
+//         const response = await axios.get(`getApiUrl("/posts/${id}`);
 //         setPost(response.data);
 //       } catch (err) {
 //         setError("Erro ao carregar o post.");
@@ -186,7 +186,7 @@
 //             }}
 //           >
 //             <img
-//               src={`http://localhost:3000/uploads/${post.imagem}`}
+//               src={`getApiUrl("/uploads/${post.imagem}`}
 //               alt={post.titulo}
 //               style={{
 //                 width: "100%",
@@ -282,7 +282,7 @@ export default function PostDetail() {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const response = await axios.get(`http://localhost:3000/posts/${id}`);
+        const response = await axios.get(`getApiUrl("/posts/${id}`);
         setPost(response.data);
       } catch (err) {
         setError("Erro ao carregar o post.");
@@ -456,7 +456,7 @@ export default function PostDetail() {
             }}
           >
             <img
-              src={`http://localhost:3000/uploads/${post.imagem}`}
+              src={`getApiUrl("/uploads/${post.imagem}`}
               alt={post.titulo}
               style={{
                 width: "100%",
