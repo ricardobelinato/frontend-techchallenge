@@ -18,12 +18,14 @@ A aplicação foi refatorada utilizando React e Vite para possuir uma interface 
 | **Vite** | Ferramenta de construção e servidor de desenvolvimento |
 | **Material UI** | Biblioteca de componentes React |
 | **Tailwind CSS** | Framework CSS |
+| **Docker** | Containerização da aplicação e banco |
+| **NGINX** | Software de código aberto que funciona como servidor web|
 | **GitHub Actions** | Pipeline de CI/CD |
 
 ---
 ## Como Executar o Projeto
 
-Rodar o aplicativo do backend seguindo a devida documentação
+Rodar o comando para executar o ```docker-compose.yml``` no aplicativo do backend  e seguir a devida documentação
 https://github.com/RobertoDolife/techChallengeBackend/tree/main
 
 ### Instalar as dependências
@@ -42,16 +44,18 @@ npm run dev
 ## 📁 Estrutura de Pastas
 
 ```
-|-- README.md
-|-- eslint.config.js
-|-- index.html
+|-- Dockerfile       
+|-- README.md        
+|-- eslint.config.js 
+|-- index.html       
+|-- nginx.conf       
 |-- package-lock.json
-|-- package.json
+|-- package.json     
 |-- postcss.config.js
 |-- public
-|   |-- favicon.png
+|   |-- favicon.png  
 |   `-- src
-|       `-- assets
+|       `-- assets   
 |-- src
 |   |-- App.test.tsx
 |   |-- App.tsx
@@ -74,6 +78,8 @@ npm run dev
 |   |   |   `-- StudentPanel.tsx
 |   |   `-- Table
 |   |       `-- TablePostAdmin.tsx
+|   |-- config
+|   |   `-- api.ts
 |   |-- index.css
 |   |-- main.tsx
 |   `-- vite-env.d.ts
@@ -87,4 +93,5 @@ npm run dev
 
 ## Desafios
 
-Entender e aplicar o uso da responsividade para diferentes telas.
+- Entender e aplicar o uso da responsividade para diferentes telas.
+- Ligação entre ambos projetos.
