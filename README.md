@@ -98,6 +98,8 @@ npm run dev
 
 ## Seeds
 
+Seeds para utilizar com um software para gerenciar e administrar bancos de dados, como o ``` DBeaver ``` .
+
 Seed para popular com usuários
 ```
 -- seed-usuarios.sql
